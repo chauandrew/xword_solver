@@ -1,4 +1,3 @@
-import datetime
 import copy
 
 sample_letters=["S","T","R","A","W",".",".","B","A","S","S",".","C","S","I","O","R","I","S","I","T",".","A","B","L","E",".","R","E","N","M","O","B","I","L","E",".","Y","E","A","R",".","A","P","P","A","D","S","A","L","E","S",".","T","V","M","O","V","I","E",".",".",".","M","I","N","A","J",".",".","O","C","E","A","N","A","D","A",".","A","S","T","U","D","E","N","T",".",".",".","R","E","A","L","M",".","A","M","I","S",".","O","B","I","E","E","C","H","O",".","O","N","P","O","P",".","P","A","R","K","S","O","S","O",".","P","I","E","R",".","G","I","J","O","E",".",".",".","P","E","T","C","R","A","T","E",".","A","N","D","I","N","D","E","X",".",".","S","M","A","R","T",".",".",".","T","O","R","R","E","N","T",".","A","R","M","O","I","R","E","S","K","I",".","T","O","W","N",".","P","A","T","R","O","L","O","I","L",".","E","R","I","E",".","S","N","E","A","K","S","K","A","L",".","R","I","T","Z",".",".","E","S","Q","U","E"]
@@ -6,22 +5,17 @@ sample_numbers = [1,2,3,4,5,0,0,6,7,8,9,0,10,11,12,13,0,0,0,0,14,0,15,0,0,0,0,16
 
 
 LETTER = 0
-DOWN   = 1
-ACROSS = 2
-BOTH   = 3 # both down and across
-BLACK  = 4
+BLACK  = 1
 
 class Cell():
     def __init__(self, kind, letter):
-        self.type = kind
-        self.letter = letter
+        self.type = kind    # either black or letter
+        self.letter = letter # letter for printing / id
+        self.across = None  # which across row the cell is in
+        self.down = None    # whihc down row the cell is in
     
     def isBlack(self):
         return bool(self.type == BLACK)
-    def isAcross(self):
-        return bool(self.type == ACROSS or self.type == BOTH)
-    def isDown(self):
-        return bool(self.type == DOWN or self.type == BOTH)
 
 
 class Board:
@@ -30,21 +24,31 @@ class Board:
         self.width = wi
         self.grid = []
         self.nums = []
+        # Create grid for letters and numbers
         for i, (let, num) in enumerate(zip(letters, numbers)):
             if let == '.':
                 self.grid.append(Cell(BLACK, let))
             elif num == 0:
                 self.grid.append(Cell(LETTER, let))
-            elif (i % wi == 0 or letters[i-1] == '.') and (i - wi < 0 or letters[i-wi] == '.'):
-                self.grid.append(Cell(BOTH, let))
-                self.nums.append(i)
-            elif i % wi == 0 or letters[i-1] == '.':
-                self.grid.append(Cell(ACROSS, let))
-                self.nums.append(i)
             else:
-                self.grid.append(Cell(DOWN, let))
+                self.grid.append(Cell(LETTER, let))
                 self.nums.append(i)
-    
+        # Assign across/down metainfo for each cell 
+        for i in self.nums:
+            # across tiles
+            index = i
+            if (index % wi) == 0 or self.grid[index - 1] == '.':
+                while self.grid[index].letter != '.':
+                    self.grid[index].across = i + 1
+                    index += 1
+            # down tiles
+            index = i
+            if index - wi < 0 or self.grid[index - wi] == '.':
+                while self.grid[index].letter != '.':
+                    self.grid[index].down = i + 1
+                    index += wi
+
+
     def print_board(self):
         for i, tile in enumerate(self.grid):
             if i % self.height == 0: 
@@ -61,25 +65,27 @@ class Board:
         return empty
 
     # 0,0 is top left corner, get cell from x,y coords
+    # can also set y=0 and get cell by single array index
     def get_cell(self, x, y):
         idx = x + self.height * y
         return self.grid[idx] if idx < len(self.grid) else None
 
+    # Get a word by number
     def get_word(self, num, kind):
-        if kind == ACROSS: 
+        index = self.nums[num - 1] 
+        if kind == "ACROSS": 
             offset = 1
-        elif kind == DOWN: 
+        elif kind == "DOWN": 
             offset = self.width
         else:
             return ""
-        index = self.nums[num - 1] 
         word = ""
         while self.grid[index].letter != '.' and index < len(self.grid):
             word += self.grid[index].letter
             index += offset
         return word
 
-    # Place word in board and return true.
+    # Place word in board and return list of numbers affected.
     # Return false if word doesn't match existing characters
     def set_word(self, num, kind, word):
         # check existing word
@@ -90,14 +96,18 @@ class Board:
             if new != old and old != '_':
                 return False
 
-        if kind == ACROSS: 
+        if kind.upper() == "ACROSS": 
             offset = 1
-        elif kind == DOWN: 
+        elif kind.upper() == "DOWN": 
             offset = self.width
         else:
             return False
-        index = self.nums[num - 1] 
+        index = self.nums[num - 1]
+        updated = []
         for i, letter in enumerate(word):
             self.grid[index + i * offset].letter = letter
-        return True
-
+            if offset == 1: # across, but faster than text search
+                updated.append(self.grid[index + i * offset].down)
+            else:
+                updated.append(self.grid[index + i * offset].across)
+        return updated[1:] # first index will always be input number
