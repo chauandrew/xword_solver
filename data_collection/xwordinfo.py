@@ -4,6 +4,7 @@ import datetime
 import json
 import re
 import urllib
+import html
 
 if len(sys.argv) != 4:
     print("USAGE: xwordinfo.py folderpath startyear endyear")
@@ -22,7 +23,7 @@ def format_date(date):
     return date.strftime("%m/%d/%y")
 
 def format_word(word):
-    return urllib.parse.unquote(word).upper()
+    return html.unescape(word).upper()
 
 url='https://www.xwordinfo.com/JSON/TrackData.aspx?date='
 word_data = {}
