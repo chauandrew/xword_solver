@@ -3,13 +3,11 @@ import json
 import sys
 import os
 
-# TODO: Build thing to create regex
 if len(sys.argv) != 2:
-    print("USAGE: load.py folderpath")
+    print("USAGE: load.py filename")
     exit(1)
 
-folderpath = sys.argv[1]
-files = [file for file in os.listdir(folderpath) if file.endswith(".json")]
+filename = sys.argv[1]
 
 word_query = "MERGE (w:Word {{body: '{}', len: {}}}) " +\
              "ON CREATE SET w.freq = 1 " +\
@@ -24,11 +22,12 @@ rel_query = "MATCH(w:Word {{body:'{}'}}) WITH w " +\
 def create_nodes(session, word, clues):
     if len(word) < 3 or len(word) > 23:
         return
-    # Create node for word
-    session.run(word_query.format(word, len(word)))
+    # session.run(word_query.format(word, len(word))) # word node
     for clue in clues:
-        session.run(clue_query.format(clue))
-        session.run(rel_query.format(word, clue))
+        if clue.strip() == "":
+            continue
+        session.run(clue_query.format(clue)) # clue node
+        session.run(rel_query.format(word, clue)) # word-clue relation
 
 # connect to database and load 
 if __name__ == "__main__":
@@ -36,9 +35,12 @@ if __name__ == "__main__":
     driver = GraphDatabase.driver(uri, auth=("xword", "xword"))
 
     with driver.session() as session:
-        with open(f"{folderpath}/{files[0]}", "r") as f:
+        with open(f"{filename}", "r") as f:
             data = json.load(f)
         for word, clues in data.items():
-            create_nodes(session, word, clues)
+            try:
+                create_nodes(session, word, clues)
+            except:
+                pass
 
     driver.close()
