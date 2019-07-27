@@ -10,9 +10,9 @@ if len(sys.argv) != 4:
     exit(1)
 folderpath = sys.argv[1]
 
-date = datetime.datetime(sys.argv[2], 1, 1) # oldest available crossword
+date = datetime.datetime(int(sys.argv[2]), 1, 1) # oldest available crossword
 incr = datetime.timedelta(days=1)
-today = datetime.datetime(sys.arv[3], 1, 1)
+today = datetime.datetime(int(sys.argv[3]), 1, 1)
 year = int(date.strftime("%Y"))
 
 def get_year(date):
