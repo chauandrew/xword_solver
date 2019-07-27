@@ -22,8 +22,7 @@ def format_date(date):
     return date.strftime("%m/%d/%y")
 
 def format_word(word):
-    return urllib.parse.unquote(word).replace(';', '').replace('&quot', '\"'
-        ).replace('&#39', '\'').upper()
+    return urllib.parse.unquote(word).upper()
 
 url='https://www.xwordinfo.com/JSON/TrackData.aspx?date='
 word_data = {}
