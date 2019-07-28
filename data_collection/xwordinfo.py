@@ -36,7 +36,7 @@ while date < today:
         all_clues = answers['Across'] + (answers['Down'])
         for line in all_clues:
             try:
-                pattern = re.search(r': (.+). : <b>([A-Z]+)</b>', line)
+                pattern = re.search(r': (.+) : <b>([A-Z]+)</b>', line)
                 clue = format_word(pattern.group(1))
                 word = format_word(pattern.group(2))
                 if word in word_data:
