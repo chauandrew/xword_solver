@@ -8,7 +8,7 @@ if len(sys.argv) != 2:
 
 filename = sys.argv[1]
 
-word_query ="MERGE (w:Word {body: $word, len: $len}) " +\
+word_query ="MERGE (w:Word {body: $word, length: $len}) " +\
             "ON CREATE SET w.freq = 1 " +\
             "ON MATCH SET w.freq = w.freq + 1" 
 
@@ -41,7 +41,6 @@ if __name__ == "__main__":
             data = json.load(f)
         for word, clues in data.items():
             try:
-                print("Creating nodes for: ", word)
                 create_nodes(session, word, clues)
             except:
                 pass

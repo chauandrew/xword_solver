@@ -31,7 +31,7 @@ if __name__ == "__main__":
             words = []
             # batch words for better performance
             for line in f.readlines():
-                words.append(line.strip())
+                words.append(line.strip().upper())
                 if len(words) >= 10:
                     create_nodes(session, words)
                     words = []
