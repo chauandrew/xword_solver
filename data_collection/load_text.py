@@ -11,7 +11,7 @@ word_query = "WITH $words AS words " +\
             "UNWIND words AS word " +\
             "WITH word, length(word) AS length " +\
             "MERGE (w:Word {body: word, length: length}) " + \
-            "ON CREATE SET w.freq = 0  "
+            "ON CREATE SET w.freq = 0"
 
 # Create nodes for a list of words 
 def create_nodes(session, words):
