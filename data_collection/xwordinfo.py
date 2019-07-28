@@ -36,7 +36,7 @@ while date < today:
         all_clues = answers['Across'] + (answers['Down'])
         for line in all_clues:
             try:
-                pattern = re.search(r': (.+). : <b>([A-Z]+)</b>', line)
+                pattern = re.search(r': (.+) : <b>([A-Z]+)</b>', line)
                 clue = format_word(pattern.group(1))
                 word = format_word(pattern.group(2))
                 if word in word_data:
@@ -48,7 +48,7 @@ while date < today:
     date += incr
     if get_year(date) > year:
         with open("{}/{}.json".format(folderpath, year), "w+") as f:
-            json.dump(word_data, f)
+            json.dump(word_data, f, indent=2)
         print("Collected data from year: {}".format(year))
         year = get_year(date)
         word_data = {}
