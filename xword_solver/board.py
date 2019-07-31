@@ -17,15 +17,15 @@ class Cell():
     def isBlack(self):
         return bool(self.type == BLACK)
 
-# TODO: redo
+# TODO: check
 class Board:
     def __init__(self, ht, wi, letters, numbers):
         self.height = ht
         self.width = wi
         self.grid = []
-        self.nums = [None] # holds index of grid clues
-        self.solved = {'across': set(), 'down': set()} # clues solved
-        self.tosolve = {'across': set(), 'down': set()} # clues not solved yet
+        self.clue_index = {'across': {}, 'down': {}} # clues solved
+        self.unsolved = {'across': set(), 'down': set()} # clues not solved yet
+        clues = [] # array to hold indices of clues
         # Create grid for letters and numbers
         for i, (let, num) in enumerate(zip(letters, numbers)):
             if let == '.':
@@ -34,24 +34,24 @@ class Board:
                 self.grid.append(Cell(LETTER, let))
             else:
                 self.grid.append(Cell(LETTER, let))
-                self.nums.append(i)
+                clues.append(i)
         # Assign across/down metainfo for each cell 
-        for cluenum, i in enumerate(self.nums):
-            if i == None: continue
+        for cluenum, index in enumerate(clues):
+            cluenum += 1 # array starts 0, clues start at 1
+            i = index
             # across tiles
-            index = i
-            if (index % wi) == 0 or self.grid[index - 1].letter == '.':
-                self.solved['across'].add(cluenum)
-                while index < len(self.grid) and self.grid[index].letter != '.':
-                    self.grid[index].across = cluenum
-                    index += 1
+            if (i % wi) == 0 or self.grid[i - 1].letter == '.':
+                self.clue_index['across'][cluenum] = index
+                while i < len(self.grid) and self.grid[i].letter != '.':
+                    self.grid[i].across = cluenum
+                    i += 1
             # down tiles
-            index = i
-            if index - wi < 0 or self.grid[index - wi].letter == '.':
-                self.solved['down'].add(cluenum)
-                while index < len(self.grid) and self.grid[index].letter != '.':
-                    self.grid[index].down = cluenum
-                    index += wi
+            i = index
+            if i - wi < 0 or self.grid[i - wi].letter == '.':
+                self.clue_index['down'][cluenum] = index
+                while i < len(self.grid) and self.grid[i].letter != '.':
+                    self.grid[i].down = cluenum
+                    i += wi
 
 
     def print_board(self):
@@ -61,16 +61,17 @@ class Board:
             print(tile.letter, end=" ")
         print('')
 
-    # TODO: redo    
+    # TODO: check 
     # Returns a deep copy of the board, but without letter  values
     def get_empty_board(self):
         empty = copy.deepcopy(self)
         for tile in empty.grid:
             if not tile.isBlack():
                 tile.letter = '_'
-        empty.solved = {'across': set(), 'down': set()} 
-        empty.tosolve['across'].update(self.solved['across']) # solved + unsolved = all
-        empty.tosolve['down'].update(self.solved['down'])
+        for cluenum, _ in empty.clue_index['across'].items():
+            empty.unsolved['across'].add(cluenum)
+        for cluenum, _ in empty.clue_index['down'].items():
+            empty.unsolved['down'].add(cluenum)
         return empty
 
     # 0,0 is top left corner, get cell from x,y coords
@@ -79,17 +80,18 @@ class Board:
         idx = x + self.height * y
         return self.grid[idx] if idx < len(self.grid) else None
 
-    # TODO: Redo
+    # TODO: check
     # Get a word by number
     def get_word(self, num, kind):
-        index = self.nums[num] 
         if kind.upper() == "ACROSS": 
-            if num != self.grid[index].across:
+            if num not in self.clue_index['across']:
                 return ""
+            index = self.clue_index['across'][num]
             offset = 1
         elif kind.upper() == "DOWN": 
-            if num != self.grid[index].down:
+            if num not in self.clue_index['down']:
                 return ""
+            index = self.clue_index['down'][num]
             offset = self.width
         else:
             return ""
@@ -99,44 +101,51 @@ class Board:
             index += offset
         return word
 
-    # TODO: redo
+    # TODO: redo, also check if other words are completed
     # Place word in board and return list of numbers affected.
     # Return false if word doesn't match existing characters
     def set_word(self, num, kind, word):
-        # check existing word
+        # check existing word pattern exists and matches suggested word
         existing = self.get_word(num, kind)
-        if len(word) != len(self.get_word(num, kind)):
+        word = word.upper()
+        if len(word) != len(existing):
             return False
+        elif word == existing: 
+            return []
         for new, old in zip(word, existing):
             if new != old and old != '_':
                 return False
-
-        if kind.upper() == "ACROSS": 
-            offset = 1
-        elif kind.upper() == "DOWN": 
+        # setup variables
+        if kind.upper() == "DOWN": 
+            index = self.clue_index['down'][num]
             offset = self.width
+        elif kind.upper() == "ACROSS": 
+            index = self.clue_index['across'][num]
+            offset = 1
         else:
             return False
-        index = self.nums[num]
         updated = []
+        # assign word in grid and remove it from unsolved list
         for i, letter in enumerate(word):
             self.grid[index + i * offset].letter = letter
-            if offset == 1: # across, but faster than text search
+            if offset == 1: # if across clu
                 updated.append(self.grid[index + i * offset].down)
-            else:
+            else: # if down clue
                 updated.append(self.grid[index + i * offset].across)
-        try: 
+        self.unsolved[kind.lower()].discard(num)
+        del updated[0] # first number points to clue we just set
+        # Check if we completed other words, and return a list of clues updated
+        for cluenum in updated.copy():
             if kind.upper() == "DOWN":
-                self.solved['down'].add(i)
-                self.tosolve['down'].remove(i)
-            else:
-                self.solved['across'].add(i)
-                self.tosolve['across'].remove(i)
-        except: 
-            pass
-        
-        return updated[1:] # first index will always be input number
+                if '_' not in self.get_word(cluenum, 'ACROSS'):
+                    self.unsolved['across'].discard(cluenum)
+                    updated.remove(cluenum)
+            else: # across
+                if '_' not in self.get_word(cluenum, 'DOWN'):
+                    self.unsolved['down'].discard(cluenum)
+                    updated.remove(cluenum)
+        return updated 
 
     # return dict of across and down clues left
     def clues_left(self):
-        return self.tosolve
+        return self.unsolved
