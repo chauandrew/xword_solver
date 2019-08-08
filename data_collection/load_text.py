@@ -1,7 +1,7 @@
 from neo4j import GraphDatabase
 import sys
 
-if len(sys.argv) != 2:
+if len(sys.argv) != 3:
     print("USAGE: load_text.py filename")
     exit(1)
 
@@ -10,8 +10,7 @@ filename = sys.argv[1]
 word_query = "WITH $words AS words " +\
             "UNWIND words AS word " +\
             "WITH word, length(word) AS length " +\
-            "MERGE (w:Word {body: word, length: length}) " + \
-            "ON CREATE SET w.freq = 0"
+            "MERGE (w:Word: {body: word, length: length})"
 
 # Create nodes for a list of words 
 def create_nodes(session, words):
