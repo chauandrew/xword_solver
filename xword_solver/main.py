@@ -8,9 +8,12 @@ from solver import XwordSolver
 
 
 
-filename = "/home/achau/github/xword_solver/boards/20160427.json"
+filename = "/home/achau/xword_solver/boards/20180804.json"
 solver = XwordSolver(filename)
-print(solver.query_word("RUSH", "____"))
+# print( solver.get_clue(1, 'ACROSS').hint)
+# print( solver.query_clue(1, 'ACROSS'))
+# print( solver.query_word(1, 'ACROSS'))
+solver.solve()
 print("FINISHED")
 
 

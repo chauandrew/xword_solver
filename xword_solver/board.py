@@ -8,16 +8,18 @@ sample_numbers = [1,2,3,4,5,0,0,6,7,8,9,0,10,11,12,13,0,0,0,0,14,0,15,0,0,0,0,16
 LETTER = 0
 BLACK  = 1
 
+# Class to represent each square of a board
 class Cell():
     def __init__(self, kind, letter):
-        self.type = kind    # either black or letter
+        self.kind = kind    # either black or letter
         self.letter = letter # letter for printing / id
         self.across = None  # which across row the cell is in
         self.down = None    # whihc down row the cell is in
     
     def isBlack(self):
-        return bool(self.type == BLACK)
+        return bool(self.kind == BLACK)
 
+# Class to represent a board 
 class Board:
     def __init__(self, ht, wi, letters, numbers):
         self.height = ht
@@ -81,6 +83,7 @@ class Board:
 
     # Get a word by number
     def get_word(self, num, kind):
+        num = int(num)
         if kind.upper() == "ACROSS": 
             if num not in self.clue_index['across']:
                 return ""
@@ -114,10 +117,10 @@ class Board:
                 return False
         # setup variables
         if kind.upper() == "DOWN": 
-            index = self.clue_index['down'][num]
+            index = self.clue_index['down'][int(num)]
             offset = self.width
         elif kind.upper() == "ACROSS": 
-            index = self.clue_index['across'][num]
+            index = self.clue_index['across'][int(num)]
             offset = 1
         else:
             return False
