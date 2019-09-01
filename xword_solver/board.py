@@ -97,9 +97,11 @@ class Board:
         else:
             return ""
         word = ""
-        while  index < len(self.grid) and self.grid[index].letter != '.':
+        while index < len(self.grid) and self.grid[index].letter != '.':
             word += self.grid[index].letter
             index += offset
+            if index % self.width == 0:
+                break
         return word
 
     # Place word in board and return list of numbers affected.
