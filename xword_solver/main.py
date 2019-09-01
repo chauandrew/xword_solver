@@ -8,7 +8,7 @@ from solver import XwordSolver
 
 
 
-filename = "/home/achau/xword_solver/boards/20180804.json"
+filename = "/home/achau/xword_solver/boards/20160427.json"
 solver = XwordSolver(filename)
 # print( solver.get_clue(1, 'ACROSS').hint)
 # print( solver.query_clue(1, 'ACROSS'))
