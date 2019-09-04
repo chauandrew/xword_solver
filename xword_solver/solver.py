@@ -66,6 +66,7 @@ class XwordSolver():
                 firstpass.put(curr)
 
         # TODO: Implement a real algorithm 
+        # Notes: abbrev's could be 'in brief' or 'for short' 
         for _ in range(count << 1):
             if secondpass.empty():
                 break
