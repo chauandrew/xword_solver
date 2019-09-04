@@ -59,19 +59,25 @@ def insert_relation(session, word, clues):
 if __name__ == "__main__":
     uri = "bolt://localhost:7687"
     driver = GraphDatabase.driver(uri, auth=("xword", "xword"))
-    signal.signal(signal.SIGINT, driver.close) # exit more gracefully
 
     with driver.session() as session:
+        print("Adding constraints...")
+        session.run("CREATE CONSTRAINT ON (w:Word) ASSERT w.body IS UNIQUE")
+        session.run("CREATE CONSTRAINT ON (c:Clue) ASSERT c.body IS UNIQUE")
         with open(f"{filename}", "r") as f:
             data = json.load(f)
         # load each word into database
         print(f"Processing {len(data)} words...")
+        curr = 0
         for word, clues in data.items():
+            if curr % 1000 == 0:
+                print(f"Processing words {curr}-{len(data) if len(data) < curr + 1000 else curr + 1000}...")
             try:
                 insert_relation(session, word, clues)
             except Exception as e:
-                print(e, file=sys.stderr)
-        print("Scoring Words..")
+                print(f"Exception caught: {e}", file=sys.stderr)
+            curr += 1
+        print("Scoring Words...")
         # add hint counts to rank words by
         session.run("""
             MATCH (w:Word)<-[r]-(:Clue) 
@@ -80,4 +86,4 @@ if __name__ == "__main__":
         """)
 
     driver.close()
-    print("FInished!")
+    print("Finished!")
