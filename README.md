@@ -9,7 +9,7 @@ Pretty critical missing pieces of the current solution
 ### Low Priority:
 Look [here](https://www.nytimes.com/guides/crosswords/how-to-solve-a-crossword-puzzle) 
 for more details on what some of these refer to
-   - [ ] data loading that doesn't break randomly
+   - [ ] more consistent data loading
    - [ ] fill in the blank clues
    - [ ] abbreviations
    - [ ] match tense
